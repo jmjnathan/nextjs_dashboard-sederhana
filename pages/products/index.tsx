@@ -4,6 +4,7 @@ import { useQueryClient } from 'react-query';
 import axios from 'axios';
 
 import Sidebar from '@/components/sidebar';
+import AddProduct from './addProduct';
 import Detail from './detailModal';
 
 type Product = {
@@ -23,12 +24,17 @@ type Product = {
     const productsPerPage = 5;
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+    const [updateProducts, setUpdateProducts] = useState(false);
 
     const handleLogout = () => {
         localStorage.removeItem('token');
         queryClient.clear();
         router.push('/login');
     };
+
+    const handleProductUpdate = () => {
+        setUpdateProducts((prev) => !prev);
+        };
 
     useEffect(() => {
         const isAuthenticated = !!localStorage.getItem('token');
@@ -64,6 +70,20 @@ type Product = {
         getProducts();
     }, []);
 
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const response = await axios.get('https://fakestoreapi.com/products');
+                setProducts(response.data);
+            } catch (error) {
+                console.error('Error fetching products:', error);
+            }
+            };
+        
+            fetchProducts();
+        }, []);
+    
+
     const indexOfLastProduct = currentPage * productsPerPage;
     const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
     const currentProducts = products.slice(indexOfFirstProduct, indexOfLastProduct);
@@ -86,6 +106,8 @@ type Product = {
         openModal(product);
     };
 
+
+
     return (
         <div className=''>
         <Sidebar />
@@ -99,6 +121,8 @@ type Product = {
                 Log Out
             </button>
             </div>
+
+            <AddProduct/>
 
             <div className='flex justify-end items-end text-center my-5 gap-2'>
                         <button className='w-auto h-auto rounded text-[14px] text-black p-2  bg-slate-200 hover:bg-slate-400'>Sort</button>
@@ -187,7 +211,17 @@ type Product = {
                     </ul>
 
             </div>
+        <h2>Product List</h2>
+        <ul>
+            {products.map((product) => (
+            <li key={product.id}>
+                {product.title} - ${product.price}
+            </li>
+            ))}
+        </ul>
         </div>
+
+
         </div>
     );
 };
